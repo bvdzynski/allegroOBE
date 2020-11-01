@@ -1,5 +1,7 @@
 # allegroOBE - allegroOffersBatchEditing
-*python's tool for offers multi-editing in Allegro*
+>python's tool for offers multi-editing in Allegro
+
+![thumbnail](https://raw.githubusercontent.com/bvdzynski/allegroOBE/master/thumbnail.jpg)
 
 ## Usage
 
