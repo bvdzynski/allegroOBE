@@ -24,7 +24,8 @@ class allegroOBE:
 
         # generate Basic token
         decodedBasic = str(self.clientId) + ":" + str(self.clientSecret)
-        encodedBasic = str(base64.b64encode(decodedBasic.encode("utf-8"), "utf-8"))
+        encodedBasic = str(base64.b64encode(
+            decodedBasic.encode("utf-8"), "utf-8"))
 
         # setup request
         address = "https://allegro.pl/auth/oauth/device"
@@ -39,7 +40,8 @@ class allegroOBE:
 
         # check if ok
         if response.status_code == 400:
-            print("Error occurred, status code: " + str(response.status_code) + "...")
+            print("Error occurred, status code: " +
+                  str(response.status_code) + "...")
             return False
 
         # response to dict
@@ -65,11 +67,12 @@ class allegroOBE:
             # execute request
             response = requests.post(
                 "https://allegro.pl/auth/oauth/token?grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Adevice_code&device_code="
-                + str(response["device_code"]), 
+                + str(response["device_code"]),
                 headers="Authorization": "Basic "
                 + str(encodedBasic)
             )
-            print("WAITING FOR LOG IN... CURRENT STATUS: " + str(response.status_code))
+            print("WAITING FOR LOG IN... CURRENT STATUS: " +
+                  str(response.status_code))
             if response.status_code == 200:
                 break
             time.sleep(3)
@@ -153,7 +156,8 @@ class allegroOBE:
             # check if ok
             if response.status_code == 400:
                 print(
-                    "Error occurred, status code: " + str(response.status_code) + "..."
+                    "Error occurred, status code: " +
+                    str(response.status_code) + "..."
                 )
             else:
                 print(
@@ -174,7 +178,8 @@ class allegroOBE:
             # check if ok
             if response.status_code == 400:
                 print(
-                    "Error occurred, status code: " + str(response.status_code) + "..."
+                    "Error occurred, status code: " +
+                    str(response.status_code) + "..."
                 )
             else:
                 print(
@@ -200,7 +205,8 @@ class allegroOBE:
             )
 
             filewriter.writerow(
-                ["offer_id", "external", "category", "offer_name", "shipping_rate_name"]
+                ["offer_id", "external", "category",
+                    "offer_name", "shipping_rate_name"]
             )
 
             counter = 0
@@ -239,3 +245,62 @@ class allegroOBE:
                             )
                     else:
                         filewriter.writerow([offer["id"], "0", "0", "0", "0"])
+
+    def changeOfferPrices(self, offersIds, productCodes, rate):
+        # [#1] download the entire offer
+        # [#2] (optional) if code found then update price by rate
+        # [#3] (optional) send the changed offer back
+
+        offerNumberOf = 0
+        priceChangeNumberOf = 0
+
+        for id in offersIds:
+            offerNumberOf += 1
+
+            # [#1]
+            offer = requests.get(
+                "https://api.allegro.pl/sale/offers/" + str(id),
+                headers=self.getHeaders("GET"),
+            )
+
+            offer = json.loads(offer.text)
+
+            # [#2]
+            if "external" in offer:
+                if offer["external"]["id"] in productCodes:
+                    priceChangeNumberOf += 1
+                    print(
+                        "found - "
+                        + offer["external"]["id"]
+                        + " - no. "
+                        + str(priceChangeNumberOf)
+                        + " - overall: "
+                        + str(offerNumberOf)
+                        + "/"
+                        + str(len(offersIds))
+                        + ", "
+                        + "old price: "
+                        + str(offer["sellingMode"]["price"]["amount"])
+                    )
+
+                    offer["sellingMode"]["price"]["amount"] = str(
+                        math.ceil(float(offer["sellingMode"]["price"]["amount"]) * rate))
+
+                    # [#3]
+                    response = requests.put(
+                        "https://api.allegro.pl/sale/offers/" + str(id),
+                        headers=self.getHeaders("POST"),
+                        data=json.dumps(offer),
+                    )
+
+                    if response.status_code == 400:
+                        print(
+                            "Error occurred, status code: " +
+                            str(response.status_code) + "..."
+                        )
+                    else:
+                        print(
+                            "Request successful, status code: "
+                            + str(response.status_code)
+                            + "..."
+                        )
