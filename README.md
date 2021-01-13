@@ -41,4 +41,13 @@ allegro has a rule - if draft is unchanged, and 2 months old - it is removed aut
 
 generates .csv file of offers with assigned shipping rates
 
+**changeOfferPrices()**
+
+changes choosen offer prices by given rate
+
+takes 3 arguments:
+1. offersIds - set w/ offers ids
+2. productCodes - codes of products for change
+3. rate - price rate
+
 **full documentation of available Allegro rest-api service: https://developer.allegro.pl/en/documentation**
